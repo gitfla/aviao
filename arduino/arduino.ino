@@ -45,7 +45,7 @@ int joyPins[] = {/*26, 27, 28, 29*/};
 char *joyNames[] = {"j1_left", "j1_right", "j2_left", "j2_right"};
 
 //int ledPins[] = {14, 15, 16, 17, 18, 19, 20, 21};
-int ledPins[] = {21, 20, 19, 18, 17, 16, 15, 14};
+int ledPins[] = {15, 14, 21, 20, 19, 18, 17, 16};
 char *ledNames[] = {"r1", "r2", "w1", "w2", "w3", "w4", "w5", "w6"}; //  (digital pins)
 
 // Variables will change:
@@ -230,9 +230,13 @@ void checkIncomingMessage() {
         }
 
         stateNum = state[0] - '0';
+        //Serial.print("stateNum; ");
+        //Serial.print(stateNum);
         //Serial.print("parsed state is");
         //Serial.print(stateNum);
-        Serial.print("\n");
+        //Serial.print("is it high? ");
+        //Serial.print(stateNum == 1);
+        //Serial.print("\n");
     }
 
     /*Serial.print("writing led pin, pin ");
@@ -241,7 +245,7 @@ void checkIncomingMessage() {
     Serial.print(stateNum);
     Serial.print("\n");*/
 
-    digitalWrite(ledPin, stateNum == 1 ? HIGH : LOW);
+    digitalWrite(ledPin, stateNum == 1 ? LOW : HIGH);
   }
 }
 

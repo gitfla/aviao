@@ -32,7 +32,12 @@
  char buffer[16];   //maximum expected length 
  int len = 0;
 
-int buttonPins[] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A13, A15};
+ enum BUTTON_STATE {
+  UNPRESSED,
+  PRESSED
+ };
+
+int buttonPins[] = {A0/*, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A13, A15*/};
 char *buttonNames[] = {"w_1", "w_2", "w_3", "w_4", "w_5", "w_6", "y_1", "y_2", "b_1", "b_2", "g_1", "g_2", "r_1", "r_2"};
 //int buttonPins[] = {A0 };
 //char *buttonNames[] = {"w1"};
@@ -63,6 +68,8 @@ int storedJoyStates[] = {0, 0, 0, 0};
 
 void setup() {
     //Serial.print("joy ");
+    Serial.begin(115200);
+
 
   Serial.print("INITIALIZING \n");
   buttonPinsSize = sizeof(buttonPins) / sizeof(int);
@@ -87,23 +94,29 @@ void setup() {
   }
 
   // initialize serial communication:
-  Serial.begin(9600);
+  }
+
+void printByte(char * bits) {
+  unsigned int byt;
+  byt = bitsToBytes(bits);
+  Serial.print(byt);
+  Serial.print("\n");
+  delay(500);
 }
 
-void loop() {
-    //Serial.print("joy ");
 
+void loop() {
   checkIncomingMessage();
 
   // read the pushbutton input pin:
   for (int i = 0; i < buttonPinsSize; ++i) {
-    int val = analogRead(buttonPins[i]);
+    int val = digitalRead(buttonPins[i]);
     //Serial.print(val);
-   // Serial.print("\n");
-    if (val < 100) {
-      buttonStates[i] = 0;
+    //Serial.print("\n");
+    if (val == 1) {
+      buttonStates[i] = UNPRESSED;
     } else {
-      buttonStates[i] = 1;
+      buttonStates[i] = PRESSED;
     }
     /*Serial.print("Last button state is: ");
     Serial.print(lastButtonStates[i]);
@@ -111,7 +124,7 @@ void loop() {
     Serial.print(buttonStates[i]);
     Serial.print("\n");*/
     if (buttonStates[i] != lastButtonStates[i]) {
-      if (buttonStates[i] == HIGH) {
+      if (buttonStates[i] == PRESSED) {
         Serial.print(buttonNames[i]);
         Serial.print("_p");
         Serial.print("\n");
@@ -184,7 +197,22 @@ void checkIncomingMessage() {
   //Serial.print("checking incoming messages \n");
   if (Serial.available() > 0) {
     //Serial.print("serial has message \n");
-    int incomingByte = Serial.read();
+    char receivedChar = Serial.read();
+
+    Serial.print("----------");
+    Serial.print("ledState is: ");
+    for (int i = 0; i < ledPinsSize; ++i) {
+      bool ledState = (receivedChar >> i) & 1;
+      Serial.print(ledState);
+      Serial.print(" ");
+      digitalWrite(ledPins[i], ledState);
+    }
+    Serial.print("\n");
+    
+
+  /*if (Serial.available() > 0) {
+    //Serial.print("serial has message \n");
+    char incomingByte = Serial.read();
     buffer[len++] = incomingByte;
 
     //Serial.print("buffer \n");
@@ -204,6 +232,23 @@ void checkIncomingMessage() {
         Serial.print("----- incoming message: ");
           Serial.print(buffer);
           Serial.print("\n");
+        
+        if (strcmp('n', buffer[0]) == 0) {
+          Serial.print("buffer is n");
+          Serial.print("\n");
+          for (int i = 0; i < ledPinsSize; ++i) {
+            digitalWrite(ledPins[i], HIGH);
+          }
+          return;
+        }
+        if (strcmp('a', buffer[0]) == 0) {
+          Serial.print("buffer is a");
+          Serial.print("\n");
+          for (int i = 0; i < ledPinsSize; ++i) {
+            digitalWrite(ledPins[i], LOW);
+          }
+          return;
+        }
         len = 0; // reset buffer counter
         led = strtok(buffer, "_");
 
@@ -211,6 +256,7 @@ void checkIncomingMessage() {
           Serial.print("error in led \n");
           return;
         }
+
         ledPin = parseLed(led);
         //Serial.print("parsed led is ");
         //Serial.print(ledPin);
@@ -248,20 +294,30 @@ void checkIncomingMessage() {
         //Serial.print("\n");
     }
 
-    /*Serial.print("writing led pin, pin ");
+    Serial.print("writing led pin, pin ");
     Serial.print(ledPin);
     Serial.print(" state ");
     Serial.print(stateNum);
-    Serial.print("\n");*/
+    Serial.print("\n");
 
     digitalWrite(ledPin, stateNum == 1 ? HIGH : LOW);
+    Serial.flush();*/
   }
+}
+
+unsigned int bitsToBytes(unsigned char *bits) {
+    unsigned int sum = 0;
+    for (int i = 0; i < 8; i++) {
+        sum = (sum << 1) + (bits[i] - '0');
+    }
+    return sum;
 }
 
 int parseLed(char* led) {
   //Serial.print("parse led , par: ");
   //Serial.print(led);
   //Serial.print("\n");
+
   for (int i = 0; i < ledPinsSize; ++i) {
 
     if (strcmp(ledNames[i], led) == 0) {

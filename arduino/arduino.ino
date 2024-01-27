@@ -41,7 +41,7 @@ int buttonPinsSize, joyPinsSize, ledPinsSize;
 
 //int joyPins[] = {26, 27};
 //char *joyNames[] = {"j1_left", "j1_right"};
-int joyPins[] = {/*26, 27, 28, 29*/};
+int joyPins[] = {26, 27, 28, 29};
 char *joyNames[] = {"j1_left", "j1_right", "j2_left", "j2_right"};
 
 //int ledPins[] = {14, 15, 16, 17, 18, 19, 20, 21};
@@ -73,12 +73,12 @@ void setup() {
      Serial.print(" nome: ");
     Serial.print(buttonNames[i]);
     Serial.print("\n");
-    pinMode(buttonPins[i], INPUT);
+    pinMode(buttonPins[i], INPUT_PULLUP);
   }
 
   joyPinsSize = sizeof(joyPins) / sizeof(int);
   for (int i = 0; i < joyPinsSize; ++i) {
-    pinMode(joyPins[i], INPUT);
+    pinMode(joyPins[i], INPUT_PULLUP);
   }
 
   ledPinsSize = sizeof(ledPins) / sizeof(int);
@@ -98,8 +98,9 @@ void loop() {
   // read the pushbutton input pin:
   for (int i = 0; i < buttonPinsSize; ++i) {
     int val = analogRead(buttonPins[i]);
-    //Serial.println(val);
-    if (val > 50) {
+    //Serial.print(val);
+   // Serial.print("\n");
+    if (val < 100) {
       buttonStates[i] = 0;
     } else {
       buttonStates[i] = 1;
@@ -200,7 +201,9 @@ void checkIncomingMessage() {
     // check for newline (end of message)
     if (incomingByte == '\n') {
         //Serial.print("incoming byte detected \n");
-
+        Serial.print("----- incoming message: ");
+          Serial.print(buffer);
+          Serial.print("\n");
         len = 0; // reset buffer counter
         led = strtok(buffer, "_");
 
@@ -213,6 +216,9 @@ void checkIncomingMessage() {
         //Serial.print(ledPin);
         //Serial.print("\n");
         if (ledPin == -1) {
+          Serial.print("wrong message: ");
+          Serial.print(buffer);
+          Serial.print("\n");
           return;
         }
       
@@ -226,6 +232,9 @@ void checkIncomingMessage() {
         //Serial.print("\n");
         if (!isdigit(state[0])) {
           Serial.print("state is not digit \n");
+          Serial.print("wrong message: ");
+          Serial.print(buffer);
+          Serial.print("\n");
           return;
         }
 
@@ -245,7 +254,7 @@ void checkIncomingMessage() {
     Serial.print(stateNum);
     Serial.print("\n");*/
 
-    digitalWrite(ledPin, stateNum == 1 ? LOW : HIGH);
+    digitalWrite(ledPin, stateNum == 1 ? HIGH : LOW);
   }
 }
 

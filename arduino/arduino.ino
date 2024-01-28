@@ -47,7 +47,7 @@ int buttonPinsSize, joyPinsSize, ledPinsSize;
 //int joyPins[] = {26, 27};
 //char *joyNames[] = {"j1_left", "j1_right"};
 int joyPins[] = {26, 27, 28, 29};
-char *joyNames[] = {"j1_left", "j1_right", "j2_left", "j2_right"};
+char *joyNames[] = {"j_1_l", "j_1_r", "j_2_l", "j_2_r"};
 
 //int ledPins[] = {14, 15, 16, 17, 18, 19, 20, 21};
 int ledPins[] = {15, 14, 21, 20, 19, 18, 17, 16};
@@ -57,27 +57,22 @@ char *ledNames[] = {"r1", "r2", "w1", "w2", "w3", "w4", "w5", "w6"}; //  (digita
 int buttonStates[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};        // current state of the button
 int lastButtonStates[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};      // previous state of the button
 
-// Variables will change:
-//int buttonStates[] = {0};        // current state of the button
-//int lastButtonStates[] = {0};      // previous state of the button
-
 int joyStates[] = {0, 0, 0, 0};
 int lastJoyStates[] = {0, 0, 0, 0};
 int lastLastJoyStates[] = {0, 0, 0, 0};
 int storedJoyStates[] = {0, 0, 0, 0};
 
 void setup() {
-    //Serial.print("joy ");
-    Serial.begin(115200);
-
-
+  // initialize serial communication:
+  Serial.begin(115200);
   Serial.print("INITIALIZING \n");
+
   buttonPinsSize = sizeof(buttonPins) / sizeof(int);
   for (int i = 0; i < buttonPinsSize; ++i) {
     Serial.print("registrando pin mode: ");
     
     Serial.print(buttonPins[i]);
-     Serial.print(" nome: ");
+    Serial.print(" nome: ");
     Serial.print(buttonNames[i]);
     Serial.print("\n");
     pinMode(buttonPins[i], INPUT_PULLUP);
@@ -92,18 +87,7 @@ void setup() {
   for (int i = 0; i < ledPinsSize; ++i) {
     pinMode(ledPins[i], OUTPUT);
   }
-
-  // initialize serial communication:
-  }
-
-void printByte(char * bits) {
-  unsigned int byt;
-  byt = bitsToBytes(bits);
-  Serial.print(byt);
-  Serial.print("\n");
-  delay(500);
 }
-
 
 void loop() {
   checkIncomingMessage();
@@ -118,39 +102,28 @@ void loop() {
     } else {
       buttonStates[i] = PRESSED;
     }
-    /*Serial.print("Last button state is: ");
-    Serial.print(lastButtonStates[i]);
-    Serial.print(" , current button state is: ");
-    Serial.print(buttonStates[i]);
-    Serial.print("\n");*/
+
     if (buttonStates[i] != lastButtonStates[i]) {
       if (buttonStates[i] == PRESSED) {
         Serial.print(buttonNames[i]);
         Serial.print("_p");
         Serial.print("\n");
-        //digitalWrite(ledPins[i], LOW);
-
-        //buttonOn(i);
       } else {
         Serial.print(buttonNames[i]);
         Serial.print("_u");
         Serial.print("\n");
-        //digitalWrite(ledPins[i], HIGH);
       }
     }
   }
 
+  // Read joy states
   for (int i = 0; i < joyPinsSize; ++i) {
     int val = digitalRead(joyPins[i]);
-    /*Serial.print("joy ");
-    Serial.print(i);
-    Serial.print(" ");
-    Serial.print(val);
-    Serial.print("\n");*/
+
     if (val == 1) {
-      joyStates[i] = 0;
+      joyStates[i] = UNPRESSED;
     } else {
-      joyStates[i] = 1;
+      joyStates[i] = PRESSED;
     }
     /*Serial.print("joy : ");
     Serial.print(joyPins[i]);
@@ -158,39 +131,29 @@ void loop() {
     Serial.print(joyStates[i]);
     Serial.print("   ");*/
     if (joyStates[i] != storedJoyStates[i] && lastJoyStates[i] != storedJoyStates[i] && lastLastJoyStates[i] != storedJoyStates[i]) {
-      if (joyStates[i] == 1) {
-        Serial.print("joy ");
+      if (joyStates[i] == PRESSED) {
         Serial.print(joyNames[i]);
-        Serial.print("state is on \n");
-        storedJoyStates[i] = 1;
-        //buttonOn(i);
+        Serial.print("\n");
+        storedJoyStates[i] = PRESSED;
       } else {
-        Serial.print("joy ");
         Serial.print(joyNames[i]);
-        Serial.print("state is off \n");
-        storedJoyStates[i] = 0;
-        //buttonOff(i);
+        Serial.print("\n");
+        storedJoyStates[i] = UNPRESSED;
       }
     }
   }
-  //Serial.print("\n");
+
   // Delay a little bit to avoid bouncing
   delay(50);
-  //Serial.print("setting current button states \n");
+
+  //Updating current states
   for (int i = 0; i < buttonPinsSize; ++i) {
     lastButtonStates[i] = buttonStates[i];
-
-    //Serial.print("Updating last button state to: ");
-    //Serial.print(lastButtonStates[i]);
-    //Serial.print("\n");
-
   }
   for (int i = 0; i < joyPinsSize; ++i) {
     lastLastJoyStates[i] = lastJoyStates[i];
     lastJoyStates[i] = joyStates[i];
   }
-  //Serial.print("---------------------------");
-  //Serial.print("\n");
 }
 
 void checkIncomingMessage() {
@@ -313,13 +276,20 @@ unsigned int bitsToBytes(unsigned char *bits) {
     return sum;
 }
 
+void printByte(char * bits) {
+  unsigned int byt;
+  byt = bitsToBytes(bits);
+  Serial.print(byt);
+  Serial.print("\n");
+  delay(500);
+}
+
 int parseLed(char* led) {
   //Serial.print("parse led , par: ");
   //Serial.print(led);
   //Serial.print("\n");
 
   for (int i = 0; i < ledPinsSize; ++i) {
-
     if (strcmp(ledNames[i], led) == 0) {
       //Serial.print("ledNames , name ");
       //Serial.print(ledNames[i]);

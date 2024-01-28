@@ -29,6 +29,10 @@
  //  Example  "12 34 56\n"
  //  In TouchDesigner:     op('serial1').send("12 34 56", terminator="\n")
  //
+
+ 
+#define DEBUG
+
  char buffer[16];   //maximum expected length 
  int len = 0;
 
@@ -160,144 +164,21 @@ void checkIncomingMessage() {
   //Serial.print("checking incoming messages \n");
   if (Serial.available() > 0) {
     //Serial.print("serial has message \n");
-    char receivedChar = Serial.read();
-
-    Serial.print("----------");
-    Serial.print("ledState is: ");
+    uint8_t receivedChar = Serial.read();
+    #ifdef DEBUG
+      Serial.print("----------");
+      Serial.print("ledState is: ");
+    #endif
     for (int i = 0; i < ledPinsSize; ++i) {
       bool ledState = (receivedChar >> i) & 1;
-      Serial.print(ledState);
-      Serial.print(" ");
+      #ifdef DEBUG
+        Serial.print(ledState);
+        Serial.print(" ");
+      #endif
       digitalWrite(ledPins[i], ledState);
     }
-    Serial.print("\n");
-    
-
-  /*if (Serial.available() > 0) {
-    //Serial.print("serial has message \n");
-    char incomingByte = Serial.read();
-    buffer[len++] = incomingByte;
-
-    //Serial.print("buffer \n");
-
-    // check for overflow
-    if (len >= 16) {
-        // overflow, resetting
-        len = 0;
-    }
-
-    char* led;
-    char* state;
-    int stateNum, ledPin;
-    // check for newline (end of message)
-    if (incomingByte == '\n') {
-        //Serial.print("incoming byte detected \n");
-        Serial.print("----- incoming message: ");
-          Serial.print(buffer);
-          Serial.print("\n");
-        
-        if (strcmp('n', buffer[0]) == 0) {
-          Serial.print("buffer is n");
-          Serial.print("\n");
-          for (int i = 0; i < ledPinsSize; ++i) {
-            digitalWrite(ledPins[i], HIGH);
-          }
-          return;
-        }
-        if (strcmp('a', buffer[0]) == 0) {
-          Serial.print("buffer is a");
-          Serial.print("\n");
-          for (int i = 0; i < ledPinsSize; ++i) {
-            digitalWrite(ledPins[i], LOW);
-          }
-          return;
-        }
-        len = 0; // reset buffer counter
-        led = strtok(buffer, "_");
-
-        if (led == NULL) {
-          Serial.print("error in led \n");
-          return;
-        }
-
-        ledPin = parseLed(led);
-        //Serial.print("parsed led is ");
-        //Serial.print(ledPin);
-        //Serial.print("\n");
-        if (ledPin == -1) {
-          Serial.print("wrong message: ");
-          Serial.print(buffer);
-          Serial.print("\n");
-          return;
-        }
-      
-        state = strtok(NULL, "_");
-        if (state == NULL) {
-          Serial.print("error in state \n");
-          return;
-        }
-        //Serial.print("state is ");
-        //Serial.print(state[0]);
-        //Serial.print("\n");
-        if (!isdigit(state[0])) {
-          Serial.print("state is not digit \n");
-          Serial.print("wrong message: ");
-          Serial.print(buffer);
-          Serial.print("\n");
-          return;
-        }
-
-        stateNum = state[0] - '0';
-        //Serial.print("stateNum; ");
-        //Serial.print(stateNum);
-        //Serial.print("parsed state is");
-        //Serial.print(stateNum);
-        //Serial.print("is it high? ");
-        //Serial.print(stateNum == 1);
-        //Serial.print("\n");
-    }
-
-    Serial.print("writing led pin, pin ");
-    Serial.print(ledPin);
-    Serial.print(" state ");
-    Serial.print(stateNum);
-    Serial.print("\n");
-
-    digitalWrite(ledPin, stateNum == 1 ? HIGH : LOW);
-    Serial.flush();*/
+    #ifdef DEBUG
+      Serial.print("\n");
+    #endif
   }
-}
-
-unsigned int bitsToBytes(unsigned char *bits) {
-    unsigned int sum = 0;
-    for (int i = 0; i < 8; i++) {
-        sum = (sum << 1) + (bits[i] - '0');
-    }
-    return sum;
-}
-
-void printByte(char * bits) {
-  unsigned int byt;
-  byt = bitsToBytes(bits);
-  Serial.print(byt);
-  Serial.print("\n");
-  delay(500);
-}
-
-int parseLed(char* led) {
-  //Serial.print("parse led , par: ");
-  //Serial.print(led);
-  //Serial.print("\n");
-
-  for (int i = 0; i < ledPinsSize; ++i) {
-    if (strcmp(ledNames[i], led) == 0) {
-      //Serial.print("ledNames , name ");
-      //Serial.print(ledNames[i]);
-      //Serial.print("\n");
-      return ledPins[i];
-    }
-  }
-  Serial.print("led not found \n");
-  Serial.print(led);
-  return -1;
 }
